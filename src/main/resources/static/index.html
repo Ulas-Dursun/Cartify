@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Cartify — Order Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --bg:#070710;
+            --bg2:#0d0d1a;
+            --bg3:#121220;
+            --card:#16162a;
+            --card2:#1c1c32;
+            --border:rgba(255,255,255,0.06);
+            --border2:rgba(255,255,255,0.1);
+            --accent:#7c6aff;
+            --accent2:#9d8fff;
+            --accent3:#5b4de0;
+            --glow:rgba(124,106,255,0.4);
+            --pink:#ff6b9d;
+            --cyan:#00d4ff;
+            --text:#e8e8f8;
+            --text2:#9090b8;
+            --text3:#5a5a80;
+            --r:14px;--r2:10px;
+        }
+        html{scroll-behavior:smooth}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+        /* NOISE TEXTURE */
+        body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
+
+        /* NAV */
+        nav{position:fixed;top:0;left:0;right:0;z-index:100;height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;background:rgba(7,7,16,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+        .brand{font-size:1.35rem;font-weight:800;text-decoration:none;background:linear-gradient(135deg,#7c6aff,#ff6b9d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
+        .brand span{opacity:0.6}
+        .nav-mid{display:flex;gap:0.25rem}
+        .nav-mid a{color:var(--text2);text-decoration:none;padding:0.45rem 1rem;border-radius:8px;font-size:0.88rem;font-weight:500;transition:all 0.2s}
+        .nav-mid a:hover{color:var(--text);background:rgba(255,255,255,0.05)}
+        .nav-right{display:flex;align-items:center;gap:0.75rem}
+        #nav-user{font-size:0.8rem;color:var(--text2);background:var(--card);border:1px solid var(--border);padding:0.3rem 0.85rem;border-radius:20px;display:none}
+
+        /* BUTTONS */
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:0.4rem;padding:0.6rem 1.3rem;border-radius:var(--r2);font-family:'Inter',sans-serif;font-size:0.875rem;font-weight:600;cursor:pointer;border:none;transition:all 0.2s;text-decoration:none;position:relative;overflow:hidden}
+        .btn::after{content:'';position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,0.08),transparent);pointer-events:none}
+        .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent3));color:#fff;box-shadow:0 4px 20px var(--glow)}
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--glow)}
+        .btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+        .btn-ghost:hover{color:var(--text);border-color:var(--accent);background:rgba(124,106,255,0.08)}
+        .btn-sm{padding:0.4rem 0.95rem;font-size:0.82rem}
+        .btn-full{width:100%}
+        .btn-danger{background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.2)}
+        .btn-danger:hover{background:rgba(239,68,68,0.25)}
+
+        /* HERO */
+        .hero{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:6rem 2rem 4rem;position:relative;overflow:hidden}
+        .hero-glow{position:absolute;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(124,106,255,0.12) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-60%);pointer-events:none}
+        .hero-glow2{position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(255,107,157,0.06) 0%,transparent 70%);bottom:10%;right:10%;pointer-events:none}
+        .hero-inner{position:relative;z-index:1;text-align:center;max-width:780px}
+        .badge{display:inline-flex;align-items:center;gap:0.5rem;background:rgba(124,106,255,0.1);border:1px solid rgba(124,106,255,0.25);color:var(--accent2);padding:0.35rem 1rem;border-radius:20px;font-size:0.78rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:2rem}
+        .badge-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+        @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+        .hero h1{font-size:clamp(2.8rem,6vw,5rem);font-weight:900;line-height:1.05;letter-spacing:-2px;margin-bottom:1.5rem}
+        .hero h1 .line1{display:block;color:var(--text)}
+        .hero h1 .line2{display:block;background:linear-gradient(135deg,#7c6aff 0%,#ff6b9d 50%,#00d4ff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .hero p{font-size:1.1rem;color:var(--text2);line-height:1.75;max-width:520px;margin:0 auto 2.5rem;font-weight:400}
+        .hero-cta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:4rem}
+        .btn-hero{padding:0.85rem 2rem;font-size:1rem;border-radius:12px}
+
+        /* STATS */
+        .stats{display:flex;gap:3rem;justify-content:center;flex-wrap:wrap;margin-bottom:5rem}
+        .stat{text-align:center}
+        .stat-num{font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .stat-label{font-size:0.78rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-top:0.25rem}
+
+        /* FEATURES */
+        .features-section{padding:5rem 2rem;position:relative}
+        .section-label{text-align:center;color:var(--text3);font-size:0.78rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.75rem}
+        .section-title{text-align:center;font-size:clamp(1.8rem,3vw,2.5rem);font-weight:800;letter-spacing:-1px;margin-bottom:1rem}
+        .section-title span{background:linear-gradient(135deg,var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .section-sub{text-align:center;color:var(--text2);font-size:0.95rem;max-width:500px;margin:0 auto 3.5rem}
+        .features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.25rem;max-width:1100px;margin:0 auto}
+        .feat{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.75rem;position:relative;overflow:hidden;transition:all 0.3s;cursor:default}
+        .feat::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,106,255,0.04),transparent);pointer-events:none}
+        .feat:hover{border-color:rgba(124,106,255,0.3);transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,0.4)}
+        .feat-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1.25rem;background:rgba(124,106,255,0.1);border:1px solid rgba(124,106,255,0.15)}
+        .feat h3{font-size:1rem;font-weight:700;margin-bottom:0.5rem}
+        .feat p{font-size:0.84rem;color:var(--text2);line-height:1.65}
+
+        /* STACK */
+        .stack-section{padding:3rem 2rem 5rem;text-align:center}
+        .tags{display:flex;flex-wrap:wrap;gap:0.6rem;justify-content:center;max-width:700px;margin:0 auto}
+        .tag{background:var(--card);border:1px solid var(--border);padding:0.4rem 1rem;border-radius:20px;font-size:0.8rem;font-weight:500;color:var(--text2);transition:all 0.2s}
+        .tag:hover{border-color:var(--accent);color:var(--accent);background:rgba(124,106,255,0.06)}
+
+        /* FOOTER */
+        footer{border-top:1px solid var(--border);padding:2rem;text-align:center;color:var(--text3);font-size:0.82rem}
+        footer a{color:var(--accent2);text-decoration:none}
+
+        /* MODAL */
+        .overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1.5rem}
+        .overlay.open{display:flex}
+        .modal{background:var(--card);border:1px solid var(--border2);border-radius:18px;padding:2.25rem;width:100%;max-width:420px;box-shadow:0 40px 80px rgba(0,0,0,0.6);animation:up 0.3s cubic-bezier(0.34,1.56,0.64,1)}
+        @keyframes up{from{opacity:0;transform:translateY(30px) scale(0.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+        .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.75rem}
+        .modal-head h2{font-size:1.3rem;font-weight:800;letter-spacing:-0.5px}
+        .close-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.9rem;transition:all 0.2s}
+        .close-btn:hover{color:var(--text);border-color:var(--border2)}
+        .tabs{display:flex;background:var(--bg2);border-radius:10px;padding:4px;margin-bottom:1.75rem;gap:4px}
+        .tab{flex:1;padding:0.5rem;border:none;background:none;color:var(--text2);font-family:'Inter',sans-serif;font-size:0.875rem;font-weight:600;cursor:pointer;border-radius:7px;transition:all 0.2s}
+        .tab.on{background:var(--accent);color:#fff;box-shadow:0 2px 12px var(--glow)}
+        .field{margin-bottom:1.1rem}
+        .field label{display:block;font-size:0.78rem;font-weight:600;color:var(--text2);letter-spacing:0.04em;text-transform:uppercase;margin-bottom:0.5rem}
+        .input{width:100%;padding:0.75rem 1rem;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r2);color:var(--text);font-family:'Inter',sans-serif;font-size:0.9rem;transition:all 0.2s;outline:none}
+        .input:focus{border-color:var(--accent);background:var(--bg3);box-shadow:0 0 0 4px rgba(124,106,255,0.1)}
+        .input::placeholder{color:var(--text3)}
+        .err{display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#fca5a5;padding:0.65rem 0.9rem;border-radius:8px;font-size:0.82rem;margin-bottom:1rem}
+        .err.on{display:block}
+        .suc{display:none;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);color:#86efac;padding:0.65rem 0.9rem;border-radius:8px;font-size:0.82rem;margin-bottom:1rem}
+        .suc.on{display:block}
+
+        /* TOAST */
+        #toasts{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem}
+        .t{padding:0.8rem 1.2rem;border-radius:10px;font-size:0.85rem;font-weight:500;animation:tin 0.3s ease;min-width:240px;box-shadow:0 8px 30px rgba(0,0,0,0.5)}
+        .t-ok{background:#14532d;border:1px solid rgba(34,197,94,0.25);color:#86efac}
+        .t-err{background:#7f1d1d;border:1px solid rgba(239,68,68,0.25);color:#fca5a5}
+        @keyframes tin{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--card2);border-radius:3px}
+
+        @media(max-width:640px){.nav-mid{display:none}.stats{gap:2rem}.hero h1{letter-spacing:-1px}}
+    </style>
+</head>
+<body>
+
+<nav>
+    <a class="brand" href="/">Cart<span>ify</span></a>
+    <div class="nav-mid">
+        <a href="/products.html">Products</a>
+        <a href="/orders.html">Orders</a>
+    </div>
+    <div class="nav-right">
+        <span id="nav-user"></span>
+        <a id="nav-admin" href="/products.html" class="btn btn-ghost btn-sm" style="display:none">⚙ Admin</a>
+        <button id="nav-login" class="btn btn-ghost btn-sm" onclick="openModal()">Sign In</button>
+        <button id="nav-logout" class="btn btn-ghost btn-sm" style="display:none" onclick="logout()">Sign Out</button>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-glow2"></div>
+    <div class="hero-inner">
+        <div class="badge"><span class="badge-dot"></span>Portfolio Project · Spring Boot API</div>
+        <h1>
+            <span class="line1">Order & Inventory</span>
+            <span class="line2">Management System</span>
+        </h1>
+        <p>A production-grade REST API with JWT authentication, role-based access control, PostgreSQL persistence, and full Docker support.</p>
+        <div class="hero-cta">
+            <button class="btn btn-primary btn-hero" onclick="handleCTA()">Get Started →</button>
+            <a class="btn btn-ghost btn-hero" href="https://github.com/ulasdursun/cartify" target="_blank">View on GitHub</a>
+        </div>
+        <div class="stats">
+            <div class="stat"><div class="stat-num">JWT</div><div class="stat-label">Auth</div></div>
+            <div class="stat"><div class="stat-num">REST</div><div class="stat-label">API Design</div></div>
+            <div class="stat"><div class="stat-num">5</div><div class="stat-label">Order States</div></div>
+            <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Tested</div></div>
+        </div>
+    </div>
+</section>
+
+<section class="features-section">
+    <div class="section-label">Core Features</div>
+    <h2 class="section-title">Built for <span>Production</span></h2>
+    <p class="section-sub">Every feature implemented with real-world patterns and clean architecture.</p>
+    <div class="features-grid">
+        <div class="feat">
+            <div class="feat-icon">🔐</div>
+            <h3>JWT Authentication</h3>
+            <p>Stateless token-based auth with BCrypt password hashing. Separate USER and ADMIN roles with method-level security.</p>
+        </div>
+        <div class="feat">
+            <div class="feat-icon">📦</div>
+            <h3>Inventory Control</h3>
+            <p>Real-time stock tracking with pessimistic locking to prevent race conditions under concurrent requests.</p>
+        </div>
+        <div class="feat">
+            <div class="feat-icon">🛒</div>
+            <h3>Order Lifecycle</h3>
+            <p>State machine enforcing valid transitions: PENDING → CONFIRMED → SHIPPED → DELIVERED. Terminal states protected.</p>
+        </div>
+        <div class="feat">
+            <div class="feat-icon">🏗️</div>
+            <h3>Clean Architecture</h3>
+            <p>Domain-first package structure. Controller → Service → Repository separation. DTOs with validation on all inputs.</p>
+        </div>
+        <div class="feat">
+            <div class="feat-icon">🧪</div>
+            <h3>Fully Tested</h3>
+            <p>Unit tests with Mockito for service layer. Integration tests via Testcontainers with a real PostgreSQL instance.</p>
+        </div>
+        <div class="feat">
+            <div class="feat-icon">🐳</div>
+            <h3>Docker Ready</h3>
+            <p>Multi-stage Dockerfile and docker-compose for one-command deployment. HikariCP connection pool configured.</p>
+        </div>
+    </div>
+</section>
+
+<section class="stack-section">
+    <div class="section-label">Tech Stack</div>
+    <h2 class="section-title" style="margin-bottom:1.5rem">What Powers <span>Cartify</span></h2>
+    <div class="tags">
+        <span class="tag">Java 21</span>
+        <span class="tag">Spring Boot 3.3</span>
+        <span class="tag">Spring Security</span>
+        <span class="tag">JWT / JJWT</span>
+        <span class="tag">PostgreSQL 17</span>
+        <span class="tag">JPA / Hibernate</span>
+        <span class="tag">Bean Validation</span>
+        <span class="tag">JUnit 5</span>
+        <span class="tag">Mockito</span>
+        <span class="tag">Testcontainers</span>
+        <span class="tag">Docker</span>
+        <span class="tag">Swagger / OpenAPI 3</span>
+        <span class="tag">Maven</span>
+        <span class="tag">Lombok</span>
+    </div>
+</section>
+
+<footer>
+    Built by <a href="https://github.com/ulasdursun">Ulaş Dursun</a> · Cartify API · 2025
+</footer>
+
+<!-- AUTH MODAL -->
+<div class="overlay" id="auth-modal">
+    <div class="modal">
+        <div class="modal-head">
+            <h2 id="modal-title">Welcome back</h2>
+            <button class="close-btn" onclick="closeModal()">✕</button>
+        </div>
+        <div class="tabs">
+            <button class="tab on" id="t-login" onclick="switchTab('login')">Sign In</button>
+            <button class="tab" id="t-reg" onclick="switchTab('reg')">Sign Up</button>
+        </div>
+        <div class="err" id="auth-err"></div>
+        <div class="suc" id="auth-suc"></div>
+
+        <div id="f-login">
+            <div class="field"><label>Email</label><input class="input" id="l-email" type="email" placeholder="you@example.com"/></div>
+            <div class="field"><label>Password</label><input class="input" id="l-pass" type="password" placeholder="••••••••"/></div>
+            <button class="btn btn-primary btn-full" onclick="doLogin()">Sign In</button>
+        </div>
+
+        <div id="f-reg" style="display:none">
+            <div class="field"><label>Email</label><input class="input" id="r-email" type="email" placeholder="you@example.com"/></div>
+            <div class="field"><label>Password <span style="color:var(--text3);font-weight:400;font-size:0.75rem;text-transform:none">(min 8 chars)</span></label><input class="input" id="r-pass" type="password" placeholder="••••••••"/></div>
+            <button class="btn btn-primary btn-full" onclick="doRegister()">Create Account</button>
+        </div>
+    </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+    const API='';
+    function getToken(){return localStorage.getItem('c_token')}
+    function getRole(){return localStorage.getItem('c_role')}
+    function getEmail(){return localStorage.getItem('c_email')}
+    function isLoggedIn(){return!!getToken()}
+    function isAdmin(){return getRole()==='ADMIN'}
+    function saveAuth(d){localStorage.setItem('c_token',d.token);localStorage.setItem('c_role',d.role);localStorage.setItem('c_email',d.email)}
+    function clearAuth(){['c_token','c_role','c_email'].forEach(k=>localStorage.removeItem(k))}
+    function authHeaders(){return{'Content-Type':'application/json','Authorization':'Bearer '+getToken()}}
+    async function apiFetch(p,o={}){const r=await fetch(API+p,o);if(r.status===204)return null;const d=await r.json().catch(()=>null);if(!r.ok)throw new Error(d?.message||'Request failed');return d}
+    function toast(msg,type='ok'){const c=document.getElementById('toasts');const t=document.createElement('div');t.className=`t t-${type}`;t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3500)}
+    function logout(){clearAuth();window.location.href='/'}
+    function updateNav(){
+        const u=document.getElementById('nav-user');
+        const l=document.getElementById('nav-login');
+        const lo=document.getElementById('nav-logout');
+        const a=document.getElementById('nav-admin');
+        if(isLoggedIn()){
+            u.textContent=getEmail()+(isAdmin()?' · ADMIN':'');u.style.display='block';
+            l.style.display='none';lo.style.display='inline-flex';
+            if(a)a.style.display=isAdmin()?'inline-flex':'none';
+        }else{
+            u.style.display='none';l.style.display='inline-flex';lo.style.display='none';
+            if(a)a.style.display='none';
+        }
+    }
+    updateNav();
+    function handleCTA(){if(isLoggedIn())window.location.href='/products.html';else openModal()}
+    function openModal(){document.getElementById('auth-modal').classList.add('open')}
+    function closeModal(){document.getElementById('auth-modal').classList.remove('open')}
+    function switchTab(t){
+        document.getElementById('f-login').style.display=t==='login'?'block':'none';
+        document.getElementById('f-reg').style.display=t==='reg'?'block':'none';
+        document.getElementById('t-login').className='tab'+(t==='login'?' on':'');
+        document.getElementById('t-reg').className='tab'+(t==='reg'?' on':'');
+        document.getElementById('modal-title').textContent=t==='login'?'Welcome back':'Create account';
+        hideMsg();
+    }
+    function showErr(m){const e=document.getElementById('auth-err');e.textContent=m;e.className='err on'}
+    function showSuc(m){const e=document.getElementById('auth-suc');e.textContent=m;e.className='suc on'}
+    function hideMsg(){document.getElementById('auth-err').className='err';document.getElementById('auth-suc').className='suc'}
+    async function doLogin(){
+        const email=document.getElementById('l-email').value.trim();
+        const password=document.getElementById('l-pass').value;
+        try{const d=await apiFetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});saveAuth(d);closeModal();toast('Welcome back, '+d.email);updateNav();setTimeout(()=>window.location.href='/products.html',700)}
+        catch(e){showErr(e.message)}
+    }
+    async function doRegister(){
+        const email=document.getElementById('r-email').value.trim();
+        const password=document.getElementById('r-pass').value;
+        try{const d=await apiFetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});saveAuth(d);closeModal();toast('Account created!');updateNav();setTimeout(()=>window.location.href='/products.html',700)}
+        catch(e){showErr(e.message)}
+    }
+    document.getElementById('auth-modal').addEventListener('click',function(e){if(e.target===this)closeModal()});
+</script>
+</body>
+</html>
